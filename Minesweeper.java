@@ -4,11 +4,13 @@ import javax.swing.*;
 import java.util.*;
 class MineFrame extends JFrame implements ActionListener,MouseListener
 {
+	int num_flags = 0;
+	int num_mines = 20;
 	MyButton b[][]=new MyButton[10][10];
 	JLabel l[][]=new JLabel[10][10];
 	Random r=new Random(new Date().getTime());
 	JDialog d=new JDialog();
-	JLabel lost=new JLabel("you lost",SwingConstants.CENTER);
+	JLabel msg=new JLabel("",SwingConstants.CENTER);
 	MineFrame()
 	{
 		super("Minesweeper");	
@@ -18,7 +20,7 @@ class MineFrame extends JFrame implements ActionListener,MouseListener
 		int i,j;
 		setVisible(true);
 		setSize(1000,1000);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setLayout(new GridLayout(10,10));
 		for(i=0;i<10;i++)
 		{
@@ -32,7 +34,7 @@ class MineFrame extends JFrame implements ActionListener,MouseListener
 				add(b[i][j]);
 			}
 		}
-		for(i=0;i<10;i++)
+		for(i=0;i<num_mines;i++)
 		{
 			int a=r.nextInt(10);
 			int b=r.nextInt(10);
@@ -77,7 +79,11 @@ class MineFrame extends JFrame implements ActionListener,MouseListener
 		if(l.getText().equals("M"))
 		{
 			//stops the game
-			d.add(lost);
+			msg.setText("YOU LOST THE GAME");
+			d.add(msg);
+			JButton newgame = new JButton("New Game");
+			newgame.addActionListener(new NewGame());
+			d.add(newgame,BorderLayout.SOUTH);
 			d.setVisible(true);
 			d.setSize(500,500);
 			for(int lv1=0;lv1<10;lv1++)
@@ -97,7 +103,7 @@ class MineFrame extends JFrame implements ActionListener,MouseListener
 				{
 					try
 					{
-						if(b[i][j]!=null)
+						if(b[p][q]!=null)
 							actionPerformed(new ActionEvent(b[p][q],ActionEvent.ACTION_PERFORMED,"CLICKED"));
 					}catch(ArrayIndexOutOfBoundsException aie){}
 				}
@@ -111,10 +117,28 @@ class MineFrame extends JFrame implements ActionListener,MouseListener
 			MyButton ab=(MyButton)me.getSource();
 			MyButton bn=null;
 			if(ab.getText().equals(""))
-				bn=new  MyButton(ab.getConnectedLabel(),"FLAG",ab.getI(),ab.getJ());
+			{
+				if(num_flags<num_mines)
+				{
+					bn=new MyButton(ab.getConnectedLabel(),"FLAG",ab.getI(),ab.getJ());
+					num_flags++;
+				}
+				else
+				{
+					msg.setText("Only "+num_mines+" flags are allowed");
+					d.add(msg);
+					d.setVisible(true);
+					d.setSize(500,500);
+					return;
+				}
+			}
 			else if(ab.getText().equals("FLAG"))
-				bn=new  MyButton(ab.getConnectedLabel(),"",ab.getI(),ab.getJ());
-			bn.setBounds(ab.getBounds());
+			{
+				bn=new MyButton(ab.getConnectedLabel(),"",ab.getI(),ab.getJ());
+				bn.addActionListener(this);
+				num_flags--;
+			}
+			bn.addMouseListener(this);
 			add(bn);
 			bn.setBounds(ab.getBounds());
 			remove(ab);
@@ -150,5 +174,12 @@ class MyButton extends JButton
 	int getJ()
 	{
 		return j;
+	}
+}
+class NewGame implements ActionListener
+{
+	public void actionPerformed(ActionEvent ngevent)
+	{
+		new MineFrame().init();
 	}
 }
