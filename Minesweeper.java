@@ -5,7 +5,8 @@ import java.util.*;
 class MineFrame extends JFrame implements ActionListener,MouseListener
 {
 	int num_flags = 0;
-	int num_mines = 20;
+	int num_mines = 10;
+	int open_cells = 0;
 	MyButton b[][]=new MyButton[10][10];
 	JLabel l[][]=new JLabel[10][10];
 	Random r=new Random(new Date().getTime());
@@ -38,6 +39,11 @@ class MineFrame extends JFrame implements ActionListener,MouseListener
 		{
 			int a=r.nextInt(10);
 			int b=r.nextInt(10);
+			if(l[a][b].getText().equals("M"))
+			{
+				i--;
+				continue;
+			}
 			l[a][b].setText("M");
 		}
 		for(i=0;i<10;i++)
@@ -69,6 +75,7 @@ class MineFrame extends JFrame implements ActionListener,MouseListener
 	}
 	public void actionPerformed(ActionEvent ae)
 	{
+		open_cells++;
 		MyButton ab=(MyButton)ae.getSource();
 		JLabel l=ab.getConnectedLabel();
 		add(l);
@@ -79,6 +86,8 @@ class MineFrame extends JFrame implements ActionListener,MouseListener
 		if(l.getText().equals("M"))
 		{
 			//stops the game
+			l.setOpaque(true);
+			l.setBackground(Color.red);
 			msg.setText("YOU LOST THE GAME");
 			d.add(msg);
 			JButton newgame = new JButton("New Game");
@@ -91,9 +100,33 @@ class MineFrame extends JFrame implements ActionListener,MouseListener
 				for(int lv2=0;lv2<10;lv2++)
 				{
 					if(b[lv1][lv2]!=null)
-						b[lv1][lv2].removeActionListener(this);
+					{
+						
+						JLabel cl = b[lv1][lv2].getConnectedLabel();
+						if(b[lv1][lv2].getText().equals("FLAG") && cl.getText().equals("M"))
+						{
+							b[lv1][lv2].setOpaque(true);
+							//b[lv1][lv2].setContentAreaFilled(false);
+							b[lv1][lv2].setBackground(Color.green);
+						}
+						else if(b[lv1][lv2].getText().equals("FLAG") && !cl.getText().equals("M"))
+						{
+							b[lv1][lv2].setOpaque(true);
+							//b[lv1][lv2].setContentAreaFilled(false);
+							b[lv1][lv2].setBackground(Color.red);
+						}
+						else if(cl.getText().equals("M")){
+							add(cl);
+							cl.setBounds(b[lv1][lv2].getBounds());
+							remove(b[lv1][lv2]);
+							b[lv1][lv2]=null;
+						}
+						else
+							b[lv1][lv2].removeActionListener(this);
+					}
 				}
 			}
+			return;
 		}
 		if(l.getText().equals("0"))
 		{
@@ -103,11 +136,22 @@ class MineFrame extends JFrame implements ActionListener,MouseListener
 				{
 					try
 					{
-						if(b[p][q]!=null)
+						if(b[p][q]!=null && !b[p][q].getText().equals("FLAG"))
 							actionPerformed(new ActionEvent(b[p][q],ActionEvent.ACTION_PERFORMED,"CLICKED"));
 					}catch(ArrayIndexOutOfBoundsException aie){}
 				}
 			}
+		}
+		if(open_cells == 100-num_mines && num_flags == num_mines)
+		{
+			//player won
+			msg.setText("YOU WON THE GAME");
+			d.add(msg);
+			JButton newgame = new JButton("New Game");
+			newgame.addActionListener(new NewGame());
+			d.add(newgame,BorderLayout.SOUTH);
+			d.setVisible(true);
+			d.setSize(500,500);
 		}
 	}
 	public void mouseClicked(MouseEvent me)
@@ -118,18 +162,19 @@ class MineFrame extends JFrame implements ActionListener,MouseListener
 			MyButton bn=null;
 			if(ab.getText().equals(""))
 			{
-				if(num_flags<num_mines)
+				
+				bn=new MyButton(ab.getConnectedLabel(),"FLAG",ab.getI(),ab.getJ());
+				num_flags++;
+				if(open_cells == 100-num_mines && num_flags == num_mines)
 				{
-					bn=new MyButton(ab.getConnectedLabel(),"FLAG",ab.getI(),ab.getJ());
-					num_flags++;
-				}
-				else
-				{
-					msg.setText("Only "+num_mines+" flags are allowed");
+					//player won
+					msg.setText("YOU WON THE GAME");
 					d.add(msg);
+					JButton newgame = new JButton("New Game");
+					newgame.addActionListener(new NewGame());
+					d.add(newgame,BorderLayout.SOUTH);
 					d.setVisible(true);
 					d.setSize(500,500);
-					return;
 				}
 			}
 			else if(ab.getText().equals("FLAG"))
@@ -138,6 +183,7 @@ class MineFrame extends JFrame implements ActionListener,MouseListener
 				bn.addActionListener(this);
 				num_flags--;
 			}
+			b[ab.getI()][ab.getJ()] = bn;
 			bn.addMouseListener(this);
 			add(bn);
 			bn.setBounds(ab.getBounds());
