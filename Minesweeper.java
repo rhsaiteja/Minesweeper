@@ -21,7 +21,7 @@ class MineFrame extends JFrame implements ActionListener,MouseListener
 		int i,j;
 		setVisible(true);
 		setSize(1000,1000);
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLayout(new GridLayout(10,10));
 		for(i=0;i<10;i++)
 		{
@@ -91,7 +91,7 @@ class MineFrame extends JFrame implements ActionListener,MouseListener
 			msg.setText("YOU LOST THE GAME");
 			d.add(msg);
 			JButton newgame = new JButton("New Game");
-			newgame.addActionListener(new NewGame());
+			newgame.addActionListener(new NewGame(this));
 			d.add(newgame,BorderLayout.SOUTH);
 			d.setVisible(true);
 			d.setSize(500,500);
@@ -148,7 +148,7 @@ class MineFrame extends JFrame implements ActionListener,MouseListener
 			msg.setText("YOU WON THE GAME");
 			d.add(msg);
 			JButton newgame = new JButton("New Game");
-			newgame.addActionListener(new NewGame());
+			newgame.addActionListener(new NewGame(this));
 			d.add(newgame,BorderLayout.SOUTH);
 			d.setVisible(true);
 			d.setSize(500,500);
@@ -171,7 +171,7 @@ class MineFrame extends JFrame implements ActionListener,MouseListener
 					msg.setText("YOU WON THE GAME");
 					d.add(msg);
 					JButton newgame = new JButton("New Game");
-					newgame.addActionListener(new NewGame());
+					newgame.addActionListener(new NewGame(this));
 					d.add(newgame,BorderLayout.SOUTH);
 					d.setVisible(true);
 					d.setSize(500,500);
@@ -224,8 +224,14 @@ class MyButton extends JButton
 }
 class NewGame implements ActionListener
 {
+	JFrame oldgame;
+	NewGame(JFrame oldgame)
+	{
+		this.oldgame = oldgame;
+	}
 	public void actionPerformed(ActionEvent ngevent)
 	{
+		oldgame.dispose();
 		new MineFrame().init();
 	}
 }
